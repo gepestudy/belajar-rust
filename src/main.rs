@@ -7,6 +7,74 @@ fn main() {
 
 // ########################################
 
+// !untuk mengakali kehilangan owner seperti test sebelumnya, kita bisa pake cara ini
+
+ fn full_name2(first_name: String, last_name: String) -> (String, String, String) {
+     let full_name =format!("{} {}", first_name, last_name);
+     (first_name, last_name, full_name)
+ }
+
+ #[test]
+ fn test_full_name2() {
+    let first_name = String::from("ilham");
+    let last_name = String::from("gilang");
+
+    let (first_name, last_name,full_name) = full_name2(first_name, last_name);
+    println!("first name is {}", first_name);
+    println!("last name is {}", last_name);
+    println!("full name is {}", full_name);
+ }
+
+ // !function return value ownership movement
+/**
+ * ? ketika fn itu mereturn value, maka ownershipnya akan pindah ke variable yang menjalankan fn,
+ * ? misal: let name = function(); maka akan pindah ownershipnya ke name
+ */
+
+ fn full_name(first_name: String, last_name: String) -> String {
+     format!("{} {}", first_name, last_name)
+ }
+
+ #[test]
+ fn test_full_name() {
+     let first_name = String::from("ilham");
+     let last_name = String::from("gilang");
+
+     let full_name = full_name(first_name, last_name);
+    //  ! ownership dari first_name dan last_name akan hilang setelah function full_name selesai
+    //  println!("first name is {}", first_name);
+    //  println!("last name is {}", last_name);
+
+     println!("full name is {}", full_name);
+ }
+
+// !function ownership movement
+/**
+ * ?masih ingat ketika apapun yang di taro di heap, maka ketika itu di assign ke variable baru
+ * ?dia akan pindah ownershipnya. bahkan jika kita hanya menjadikanya parameter/argument di function
+ */
+fn print_number(number:i32) { // ? ini tidak akan memindahkan ownershipnya
+    println!("number is {}", number);
+}
+
+fn hi(name: String){ // ! karna name itu String(heap), maka ownershipnya akan pindah ke parameter
+    println!("hello {}", name);
+}
+
+#[test]
+fn test_function_ownership() {
+    let a = 10;
+    let name = String::from("ilham");
+    print_number(a);
+    println!("number still available {}", a); //? ini masih ada karna ini di simpan di stack karna fix sized
+
+    hi(name); // ? kalo mao tidak hilang ya gunakan clone seperti di test sebelumnya
+    // ! ini akan sedikit membingungkan karna kita tidak bisa print name disini. jd harus ingat apapun itu jika di heap, maka pindah ownership
+    // ! jadi ketika function hi selesai, name akan di hapus (otomatis karna rust tidak menggunakan GC/manual memory management)
+    // println!("name still available {}", name); //! ini akan error karna name sudah di miliki argument function hi
+}
+
+
 // ########################################
 
 
