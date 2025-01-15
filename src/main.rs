@@ -1,11 +1,401 @@
 
 /*TOLONG BACA DARI BAWAH KE ATAS. */
 
+
 fn main() {
     println!("Hello, world!");
 }
 
 // ########################################
+// ! MATCHING PATTER VALUE
+#[test]
+fn matching_value() {
+    // ini sama aja kaya switch case atau if else aja, jd ini sepertinya jarang di pake nantinya
+    let name = "pamungkas"; // ganti value ini untuk cek
+
+    match name {
+        "ilham"=>{ // ktia bisa juga pake pipe, eg: "iham" | "pamungkas"
+            println!("hello , {}", name);
+        }
+        "gilang"=>{
+            println!("hello , {}", name);
+        }
+        other => {
+            println!("hello other, {}", other);
+        }
+    }
+
+    let value = 1000;
+
+    match value {
+        0..=100 => {
+            println!("{} is between 0 100", value);
+        }
+        other =>{
+            println!("{} is between 100 unlimited", other);
+        }
+    }
+
+    let point = GeoPoint(-6.20000, 106.81667);
+    match point {
+        GeoPoint(long, -0.1) => { // jika lat nya 0.1 maka ini terpilih
+            println!("long: {}", long);
+        }
+        GeoPoint(0.0,lat) =>{ // jika long nya 0.0 ini terpilih
+            println!("lat: {}", lat);
+        }
+        GeoPoint(long, lat) => { // verapapun
+            println!("long: {}, lat: {}", long, lat);
+        }
+    }
+
+    // ! destructuiring struct pattern
+    let person = Person{
+        first_name: String::from("ilham"),
+        last_name: String::from("gilang"),
+        age: 26,
+    };
+    // khusus untuk tuple struct atau enum, kita tidak bisa pakai .. karna tidak ada namanya kaya struct. tp pake _ aja untuk mengabaikan
+    match person {
+        Person {first_name,age,..}=>{ // jika kita hanya butuh first_name dan age, sisanya harus pakai ".."
+            println!("first name: {}, age: {}", first_name, age);
+        }
+        Person {first_name,..}=>{ // jika kita hanya butuh first_name dan age, sisanya harus pakai ".."
+            println!("first name: {}", first_name);
+        }
+    }
+    
+}
+// ########################################
+
+
+// ########################################
+// ! PATERN MATCHING
+/**
+ * ini biasanya digunakan unutk if else enum. karna enum tidak support if else, kita tidak bisa akses datanya
+ * ini di gunakan untuk apapun ini sangat kompleks bisa buat apa aja, ambil nama variabel, value dll. tp saya mules
+ */
+
+#[test]
+fn test_matching_enum() {
+    let level: Level = Level::Platinum;
+
+    match level { // wajib cover semua yang ada di level.
+        Level::Reguler =>{ // eksekusi apapun
+            println!("reguler");
+        }
+        Level::Premium => {
+            println!("premium");
+        }
+        Level::Platinum => {
+            println!("platinum");
+        }
+    }
+
+    let payment :Payment = Payment::BankTransfer(String::from("BCA"), String::from("1234567890"));
+    payment.pay(15000);
+}
+
+// ########################################
+
+
+// ########################################
+// ! ENUM
+
+enum Level {
+    Reguler,
+    Premium,
+    Platinum
+}
+enum Payment {
+    /** 
+     * ! menariknya enum di rust bisa begini. kaya struct versi low budget
+     * ! lebih menarik lg ternyata enum bisa punya method wokwowkowk
+     */
+    // card number
+    CreaditCard(String),
+    // bank name, account number
+    BankTransfer(String, String),
+    // ewallet name, ewallet number
+    EWallet(String, String),
+}
+
+impl Payment {
+    fn pay(&self, amount: u32) { // buat contoh patern matching, yg sebelumnya di timpa soalnya cuma dikit
+        match self {
+            Self::CreaditCard(card_number) => {
+                println!("paid {} with card number {}", amount,card_number);
+            }
+            Self::BankTransfer(bank_name, account_number) => {
+                println!("paid {} with {} account number {}", amount,bank_name, account_number);
+            }
+            Self::EWallet(ewallet_name, ewallet_number) => {
+                println!("paid {} with {} ewallet number {}", amount,ewallet_name, ewallet_number);
+            }
+        }
+    }
+}
+
+#[test]
+fn test_enum() {
+    let _level:Level = Level::Reguler;
+    let _level2:Level = Level::Premium;
+    let _level3:Level = Level::Platinum;
+
+    let _payment:Payment = Payment::CreaditCard(String::from("1234567890"));
+    let _payment2:Payment = Payment::BankTransfer(String::from("BRI"), String::from("1234567890"));
+    let _payment3:Payment = Payment::EWallet(String::from("GOPAY"), String::from("1234567890"));
+
+    // enum method
+    _payment.pay(10000);
+}
+// ########################################
+
+// ########################################
+// ! ASSOCIATED FUNCTION
+/**
+ * assoc function itu kaya static function di php. jadi dia ada di bawah suatu struct/tipe data lain.
+ * cuman dia ga butuh self, yang menjadikan dia bukan method.
+ * cara panggilnya any::assoc_fn()
+ */
+impl GeoPoint { // struct GeoPoint ada di bawah
+    fn new(long: f64, lat: f64) -> GeoPoint {
+        GeoPoint(long, lat)
+    }
+}
+
+#[test]
+fn test_assoc_function() {
+    let geo_point = GeoPoint::new(-6.20000, 106.81667);
+    println!("{}", geo_point.0);
+    println!("{}", geo_point.1);
+}
+
+// ! METHOD
+/** 
+ * method ya method wkwkw. tp disini ad ayg baru yaitu self. 
+ * self itu kaya `this`. jd bisa akses ke properti/field dari struct itu sendiri.
+ * kenapa pake reference, ya emang lu mau nanti field2nya pindah owner ketika lagi di pinjem si self
+*/
+struct Person2 {
+    first_name: String,
+    last_name: String,
+    age: u8,
+}
+
+impl Person2 {
+    fn hello(&self) {
+        println!("hello {} {} {}", self.first_name, self.last_name, self.age);
+    }
+}
+
+#[test]
+fn test_method() {
+    let person: Person2 = Person2{
+        age: 26,
+        first_name: String::from("ilham"),
+        last_name: String::from("gilang"),
+    };
+
+    person.hello();
+}
+// ########################################
+
+
+// ########################################
+// ! TUPLE STRUCT
+/**
+ * mirip kaya tuple. ngambil datanya juga kaya tuple. cuman bedanya ini kaya tuple tp di namain.
+ * gunain tuple biasa ajalah
+ */
+struct GeoPoint(f64, f64);
+
+#[test]
+fn tuple_struct() {
+    let geo_point = GeoPoint(-1.0, 1.0);
+    println!("{}", geo_point.0);
+    println!("{}", geo_point.1);
+}
+// ! STRUCT
+/**
+ * struct di rust mirip struct di golang, btw ini kan ga fixed size(feeling aja wkwk) jd dia di heap di simpanya
+ */
+
+ #[derive(Debug)] // ! kalo mau println harus pake ini, karna struct pada dasarnya tidak implement debug trait/interface
+ struct Person {
+    first_name: String,
+    last_name: String,
+    age: u8,
+ }
+
+//  kita juga bisa jadikan struct sebagai paramter / return value
+fn print_person(person: &Person) { // pake reference aja biar ownershipnya ga pindah
+    println!("person is {:#?}", person);
+}
+
+ #[test]
+ fn struct_person() {
+    let person: Person = Person{
+        first_name: String::from("ilham"),
+        last_name: String::from("gilang"),
+        age: 26,
+    };
+
+    print_person(&person);
+
+    let mut person2: Person = Person{..person}; // !ini akan memindahkan owner jika ada field yang bertipe dinamis (heap)
+
+    person2.last_name = String::from("pamungkas");
+    // println!("person {:#?}", person); // ! ini ga bisa karna first/last name itu udah pindah owner
+    print_person(&person2);
+
+    let person3: Person = Person{
+        first_name: person2.first_name.clone(), // kita pake clone untuk emgnhindari pepindahan owner
+        last_name: person2.last_name.clone(),
+        age: person2.age, // ini gausah karna u8 itu implement trait copy alias dia ada di stack
+    };
+    print_person(&person3);
+    
+ }
+// ########################################
+
+
+// ########################################
+// ! SLICE
+/** 
+ * slice itu adalah potongan dari array atau apapun, jadi dia pasti reference, karna kepilikanya bukan punya dia
+ */
+#[test]
+fn slice_reference() {
+    let array : [i32; 11] = [0,1,2,3,4,5,6,7,8,9,10];
+
+    let slice = &array[..]; // ? ini adalah slice
+    println!("full array &array[..] is {:?}", slice);
+
+    let slice2 = &array[..5];
+    println!("slice2 &array[..5] is {:?}", slice2);
+
+    let slice3 = &array[1..];
+    println!("slice3 &array[1..] is {:?}", slice3);
+
+    // ini contoh dari docs nya
+    let arr = [0, 1, 2, 3, 4];
+    assert_eq!(arr[ ..  ], [0, 1, 2, 3, 4]);
+    assert_eq!(arr[ .. 3], [0, 1, 2      ]);
+    assert_eq!(arr[ ..=3], [0, 1, 2, 3   ]);
+    assert_eq!(arr[1..  ], [   1, 2, 3, 4]);
+    assert_eq!(arr[1.. 3], [   1, 2      ]); // This is a `Range`
+    assert_eq!(arr[1..=3], [   1, 2, 3   ]);
+}
+// ########################################
+
+
+// ########################################
+// dangling pointer / null reference 
+/**
+ * * good case
+ * kita sudah tau jangan mereturn reference karna itu akan sia-sia dan value akan hilang karna owner di hapus
+ * jadi kita pindahkan aja ownernya ke penampung function itu, jd hanya return value biasa aja
+ * karna ini di heap ya dia pindah owner nya otomatis,
+ */
+fn get_full_name(first_name: &String,last_name: &String)-> String {
+    let name = format!("{} {}", first_name, last_name);
+    return name
+}
+
+#[test]
+fn test_dangling_pointer() {
+    let first_name = String::from("ilham");
+    let last_name = String::from("gilang");
+
+    let full_name = get_full_name(&first_name, &last_name); // ? kita tjadikan variable baru untuk owner dari return functionya
+    println!("full name is {}", full_name);
+    // ini bukan case di atas sih. tp biar ga lupa, kita masih bisa akses first_name dan last_name
+    // karna yang kita kirim itu reference, jd ga pindah owner
+    println!("first name is {}", first_name);
+    println!("last name is {}", last_name);
+}
+
+/** 
+ * ! bad case
+ * kita ga bisa kaya golang yang mereturn reference/pointer, karna golang kan otomatis di atur GC,
+ * sedangkan rust itu owner lifecycle nya otomatis tp berdasarkan eksekusi(jika sudah selesai maka di hapus)
+ * jadi ketika kita return &string, kan kita return &name, ketika function selesai maka owner name akan di hapus
+ * begitu juga isinya, jd &string itu tidak ada isinya jadinya error.
+ */
+// fn get_full_name(first_name: &String,last_name: &String)-> &String {
+//     let name = format!("{} {}", first_name, last_name);
+//     return &name
+// }
+
+// ! MUTABLE REFERENCE
+/**
+ * ? dalam satu lifecycle kita hanya bisa punya 1 mutable reference,
+ * ? dan juga dalam satu lifecycle jika pakai reference maka semuanya harus reference, tidak boleh ada 1 pun mut referecene
+ * ? begitu juga jika ada 1 mut ref maka tidak boleh ada imutable ref lainya
+ */
+fn change_string_value(value: &mut String) {
+    value.push_str(" updated");
+}
+
+fn change_int32_value(value: &mut i32) {
+    *value = 100 // kita harus men derefence value agar bisa di ubah
+}
+
+#[test]
+fn test_mutable_reference() {
+    let mut name = String::from("ilham");
+    let mut age = 26;
+
+    change_string_value(&mut name);
+    println!("name is {}", name);
+
+    change_int32_value(&mut age);
+    println!("age is {}", age);
+
+    // ! ga bisa di lakukan
+    // let test = &mut name; ? dalam satu waktu kita hanya bisa punya 1 mutable reference,
+    // let test2 = &mut name; // ini ga bisa di lakukan (karna sudah di pinjak ama variable test), karna dalam 1 lifecycle hanya bisa punya 1 mutable reference
+    // change_string_value(test);
+    // change_string_value(test2);
+
+    change_string_value(&mut name);
+    change_string_value(&mut name);
+    change_string_value(&mut name);
+    change_string_value(&mut name);
+    
+}
+
+
+// ! REFERENCE & BORROWING
+/**
+ * ? dengan reference ini berarti kita mengirim hanya reference, 
+ * ? bukan valueyang berarti tidak akan ada perpindahan owner
+ * ? konsep ini mirip golang reference, dimana reference itu bukan value melainkan hanya pointer address
+ * ? akan tetapi di rust. kita tidak bisa mengubah value dari reference walau ownernya imutable
+ * ? di rust konsep ini namanya borrowing, jd meminjam, hanya meminjam tidak bisa mengubah
+ */
+
+fn full_name_with_reference(first_name: &String, last_name: &String) -> String {
+    // walau firstname (mutable) dia tidak akan bisa di ubah disini karna first_name disini hanya borrowing
+    // first_name.push_str("updated");
+    format!("{} {}", first_name, last_name)
+}
+
+#[test]
+fn test_full_name_with_reference() {
+   let mut first_name = String::from("ilham");
+   let last_name = String::from("gilang");
+
+    // yang di kirim hanya reference nya saja
+   let full_name = full_name_with_reference(&first_name, &last_name);
+
+   println!("first name is {}", first_name); // * kita masih bisa akses ini karna tidak pindah owner ke aprameter. 
+   println!("last name is {}", last_name); // * kita masih bisa akses ini karna tidak pindah owner ke aprameter. 
+   println!("full name is {}", full_name);
+}
+
+
 
 // !untuk mengakali kehilangan owner seperti test sebelumnya, kita bisa pake cara ini
 
